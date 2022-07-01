@@ -1,8 +1,7 @@
+
 import org.jetbrains.compose.compose
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 
 buildscript {
     repositories {
@@ -15,7 +14,7 @@ buildscript {
 
 plugins {
     kotlin("multiplatform") version "1.6.21"
-    id("org.jetbrains.compose") version "1.2.0-alpha01-dev713"
+    id("org.jetbrains.compose") version ".2.0-alpha01-dev731"
 }
 
 version = "1.0-SNAPSHOT"
@@ -49,8 +48,6 @@ kotlin {
                     "-linker-option", "-framework", "-linker-option", "CoreText",
                     "-linker-option", "-framework", "-linker-option", "CoreGraphics"
                 )
-                // TODO: the current compose binary surprises LLVM, so disable checks for now.
-                freeCompilerArgs += "-Xdisable-phases=VerifyBitcode"
             }
         }
     }
@@ -60,7 +57,8 @@ kotlin {
             dependencies {
                 implementation(compose.ui)
                 implementation(compose.foundation)
-                implementation(compose.material)
+                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                implementation(compose.material3)
                 implementation(compose.runtime)
             }
         }
@@ -87,6 +85,11 @@ compose.experimental {
     uikit.application {
         bundleIdPrefix = "moe.tlaster"
         projectName = "ComposeBootstrap"
+        deployConfigurations {
+            simulator("Simulator") {
+                device = org.jetbrains.compose.experimental.dsl.IOSDevices.IPHONE_13_MINI
+            }
+        }
     }
 }
 
@@ -97,8 +100,6 @@ tasks.withType<KotlinCompile> {
 kotlin {
     targets.withType<KotlinNativeTarget> {
         binaries.all {
-            // TODO: the current compose binary surprises LLVM, so disable checks for now.
-            freeCompilerArgs += "-Xdisable-phases=VerifyBitcode"
         }
     }
 }
